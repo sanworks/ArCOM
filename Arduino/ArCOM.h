@@ -29,6 +29,10 @@ protected:
 
 
 public:
+  // Constructor
+  ArCOM(Stream &s);
+  // Serial functions
+  unsigned int available();
   // Unsigned integers
 	void writeByte(byte byte2Write);
   void writeUint8(byte byte2Write);
@@ -66,6 +70,7 @@ public:
   void readInt32Array(int32_t numArray[], unsigned int size);
   
 private:
+  Stream *ArCOMstream; // Stores the interface (Serial, Serial1, SerialUSB, etc.)
   union {
     byte byteArray[4];
     uint16_t uint16;

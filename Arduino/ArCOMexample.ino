@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // ArCOM('close', Port);
 
 #include "ArCOM.h"
-ArCOM myUSB;
+ArCOM myUSB(SerialUSB); // Sets ArCOM to wrap SerialUSB (could also be Serial, Serial1, etc.)
 short waveform[100] = {0};
 unsigned long timestamps[100] = {0};
 
@@ -38,7 +38,7 @@ void setup() {
 }
 
 void loop() {
-  if (SerialUSB.available()) { // Wait for MATLAB to send data
+  if (myUSB.available()) { // Wait for MATLAB to send data
     myUSB.readInt16Array(waveform, 100); // Read 100 16-bit signed integers (e.g. a waveform)
     myUSB.readUint32Array(timestamps, 100); // Read 100 32-bit unsigned integers (e.g. timing data)
     for (int i = 0; i < 100; i++) {
