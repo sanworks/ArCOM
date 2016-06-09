@@ -97,7 +97,7 @@ switch lower(op)
                     error('The third argument to ArCOM(''init'' must be either ''java'' or ''psychtoolbox''');
             end
         end
-        arCOMObject.validDataTypes = {'uint8', 'uint16', 'uint32', 'int8', 'int16', 'int32'};
+        arCOMObject.validDataTypes = {'char', 'uint8', 'uint16', 'uint32', 'int8', 'int16', 'int32'};
         switch arCOMObject.Interface
             case 0
                 arCOMObject.Port = serial(portString, 'BaudRate', 115200, 'Timeout', 1,'OutputBufferSize', 100000, 'InputBufferSize', 100000, 'DataTerminalReady', 'on', 'tag', 'ArCOM');
@@ -143,6 +143,10 @@ switch lower(op)
             dataType = 'uint8';
         end
         switch dataType % Check range
+            case 'char'
+                if sum((data < 0)+(data > 128)) > 0
+                    error('Error: a char was out of range: 0 to 128 (limited by Arduino)')
+                end
             case 'uint8'
                 if sum((data < 0)+(data > 255)) > 0
                     error('Error: an unsigned 8-bit integer was out of range: 0 to 255')
@@ -173,6 +177,8 @@ switch lower(op)
                 fwrite(port, data, dataType);
             case 1
                 switch dataType
+                    case 'char'
+                        IOPort('Write', arCOMObject.Port, char(data), 1);
                     case 'uint8'
                         IOPort('Write', arCOMObject.Port, uint8(data), 1);
                     case 'uint16'
@@ -188,6 +194,8 @@ switch lower(op)
                 end
             case 2
                 switch Datatype
+                    case 'char'
+                        srl_write(arCOMObject.Port, char(data));
                     case 'uint8'
                         srl_write(arCOMObject.Port, char(data));
                     case 'uint16'
@@ -220,6 +228,8 @@ switch lower(op)
             case 1
                 nValues = double(nValues);
                 switch dataType
+                    case 'char'
+                        varargout{1} = char(IOPort('Read', arCOMObject.Port, 1, nValues));
                     case 'uint8'
                         varargout{1} = uint8(IOPort('Read', arCOMObject.Port, 1, nValues));
                     case 'uint16'
@@ -240,6 +250,9 @@ switch lower(op)
             case 2
                 nValues = double(nValues);
                 switch Datatype
+                    case 'char'
+                        Data = srl_read(arCOMObject.Port, nValues);
+                        varargout{1} = char(typecast(Data, 'int8'));
                     case 'uint8'
                         varargout{1} = srl_read(arCOMObject.Port, nValues);
                     case 'uint16'

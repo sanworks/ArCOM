@@ -34,7 +34,6 @@ short waveform[100] = {0};
 unsigned long timestamps[100] = {0};
 
 void setup() {
-  // put your setup code here, to run once:
   SerialUSB.begin(115200);
 }
 

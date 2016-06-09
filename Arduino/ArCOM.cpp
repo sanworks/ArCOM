@@ -27,6 +27,9 @@ void ArCOM::writeByte(byte byte2Write) {
 void ArCOM::writeUint8(byte byte2Write) {
   SerialUSB.write(byte2Write);
 }
+void ArCOM::writeChar(char char2Write) {
+  SerialUSB.write(char2Write);
+}
 void ArCOM::writeUint16(unsigned short int2Write) {
    SerialUSB.write((byte)int2Write);
    SerialUSB.write((byte)(int2Write >> 8));
@@ -43,6 +46,10 @@ byte ArCOM::readByte(){
   return SerialUSB.read();
 }
 byte ArCOM::readUint8(){
+  while (SerialUSB.available() == 0) {}
+  return SerialUSB.read();
+}
+char ArCOM::readChar(){
   while (SerialUSB.available() == 0) {}
   return SerialUSB.read();
 }
@@ -118,6 +125,11 @@ void ArCOM::writeUint8Array(byte numArray[], unsigned int nValues) {
     SerialUSB.write(numArray[i]);
   }
 }
+void ArCOM::writeCharArray(char charArray[], unsigned int nValues) {
+  for (int i = 0; i < nValues; i++) {
+    SerialUSB.write(charArray[i]);
+  }
+}
 void ArCOM::writeInt8Array(int8_t numArray[], unsigned int nValues) {
   for (int i = 0; i < nValues; i++) {
     typeBuffer.int8 = numArray[i];
@@ -166,6 +178,12 @@ void ArCOM::readUint8Array(byte numArray[], unsigned int nValues) {
   for (unsigned int i = 0; i < nValues; i++) {
     while (SerialUSB.available() == 0) {}
     numArray[i] = SerialUSB.read();
+  }
+}
+void ArCOM::readCharArray(char charArray[], unsigned int nValues) {
+  for (unsigned int i = 0; i < nValues; i++) {
+    while (SerialUSB.available() == 0) {}
+    charArray[i] = SerialUSB.read();
   }
 }
 void ArCOM::readInt8Array(int8_t numArray[], unsigned int nValues) {

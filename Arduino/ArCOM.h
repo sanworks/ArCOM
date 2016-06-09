@@ -32,16 +32,20 @@ public:
   // Unsigned integers
 	void writeByte(byte byte2Write);
   void writeUint8(byte byte2Write);
+  void writeChar(char char2Write);
   void writeByteArray(byte numArray[], unsigned int size);
   void writeUint8Array(byte numArray[], unsigned int size);
+  void writeCharArray(char charArray[], unsigned int size);
   void writeUint16(uint16_t int2Write);
   void writeUint16Array(unsigned short numArray[], unsigned int size);
   void writeUint32(uint32_t int2Write);
   void writeUint32Array(unsigned long numArray[], unsigned int size);
   byte readByte();
   byte readUint8();
+  char readChar();
   void readByteArray(byte numArray[], unsigned int size);
   void readUint8Array(byte numArray[], unsigned int size);
+  void readCharArray(char charArray[], unsigned int size);
   uint16_t readUint16();
   void readUint16Array(unsigned short numArray[], unsigned int size);
   uint32_t readUint32();
