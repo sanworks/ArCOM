@@ -22,10 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // This example code receives 100 16-bit signed integers and 100 32-bit unsigned integers, modifies them, and returns them to MATLAB.
 // On the MATLAB side, use: 
 // Port = ArCOM('open', 'COM13', 115200)
-// ArCOM('write', Port, int16(sin(.1*(1:100))*10000), 'int16'); % Write a 16-bit sine wave
-// ArCOM('write', Port, 100001:100100, 'uint32'); % Write 32-bit timestamps
-// ArCOM('read', Port, 100, 'int16'); % Read 100 16-bit samples
-// ArCOM('read', Port, 100, 'uint32'); % Read 100 32-bit samples
+// ArCOM('write', Port, int16(sin(.1*(1:100))*10000), 'int16', 100001:100100, 'uint32'); % Write 16-bit sine wave, then 32-bit timestamps
+// [wave, times] = ArCOM('read', Port, 100, 'int16', 100, 'uint32'); % Read 100 signed 16-bit samples, then 200 unsigned 32-bit times
 // ArCOM('close', Port);
 
 #include "ArCOM.h"

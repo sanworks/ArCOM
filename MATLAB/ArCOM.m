@@ -63,7 +63,7 @@ switch lower(op)
             arCOMObject.UseOctave = 0;
         end
         try
-            V = PsychtoolboxVersion;
+            PsychtoolboxVersion;
             arCOMObject.UsePsychToolbox = 1;
             arCOMObject.Interface = 1; % PsychToolbox serial interface
         catch
@@ -73,7 +73,7 @@ switch lower(op)
         portString = varargin{1};
         if nargin > 2
             baudRate = varargin{2};
-            if isstr(baudRate)
+            if ischar(baudRate)
                 baudRate = str2double(baudRate);
             end
         else
@@ -133,144 +133,158 @@ switch lower(op)
         end
     case 'write'
         arCOMObject = varargin{1};
-        data = varargin{2};
-        if nargin > 3
-            dataType = varargin{3};
-            if ~strcmp(dataType, arCOMObject.validDataTypes)
-                error(['The datatype ' dataType ' is not currently supported by ArCOM.']);
-            end
+        if nargin == 3 % Single array with no data type specified (defaults to uint8)
+            nArrays = 1;
+            data2Send = varargin(2);
+            dataTypes = {'uint8'};
         else
-            dataType = 'uint8';
+            nArrays = (nargin-2)/2;
+            data2Send = varargin(2:2:end);
+            dataTypes = varargin(3:2:end);
         end
-        switch dataType % Check range
-            case 'char'
-                if sum((data < 0)+(data > 128)) > 0
-                    error('Error: a char was out of range: 0 to 128 (limited by Arduino)')
-                end
-            case 'uint8'
-                if sum((data < 0)+(data > 255)) > 0
-                    error('Error: an unsigned 8-bit integer was out of range: 0 to 255')
-                end
-            case 'uint16'
-                if sum((data < 0)+(data > 65535)) > 0
-                    error('Error: an unsigned 16-bit integer was out of range: 0 to 65,535')
-                end
-            case 'uint32'
-                if sum((data < 0)+(data > 4294967295)) > 0
-                    error('Error: an unsigned 32-bit integer was out of range: 0 to 4,294,967,295')
-                end
-            case 'int8'
-                if sum((data < -128)+(data > 127)) > 0
-                    error('Error: a signed 8-bit integer was out of range: -128 to 127')
-                end
-            case 'int16'
-                if sum((data < -32768)+(data > 32767)) > 0
-                    error('Error: a signed 16-bit integer was out of range: -32,768 to 32,767')
-                end
-            case 'int32'
-                if sum((data < -2147483648)+(data > 2147483647)) > 0
-                    error('Error: a signed 32-bit integer was out of range: -2,147,483,648 to 2,147,483,647')
-                end
+        nTotalBytes = 0;
+        DataLength = cellfun('length',data2Send);
+        for i = 1:nArrays
+            switch dataTypes{i}
+                case 'char' 
+                    nTotalBytes = nTotalBytes + DataLength(i);
+                case 'uint8'
+                    nTotalBytes = nTotalBytes + DataLength(i);
+                case 'uint16'
+                    DataLength(i) = DataLength(i)*2;
+                    nTotalBytes = nTotalBytes + DataLength(i);
+                case 'uint32'
+                    DataLength(i) = DataLength(i)*4;
+                    nTotalBytes = nTotalBytes + DataLength(i);
+                case 'int8'
+                    nTotalBytes = nTotalBytes + DataLength(i);
+                case 'int16'
+                    DataLength(i) = DataLength(i)*2;
+                    nTotalBytes = nTotalBytes + DataLength(i);
+                case 'int32'
+                    DataLength(i) = DataLength(i)*4;
+                    nTotalBytes = nTotalBytes + DataLength(i);
+            end
+        end
+        ByteStringPos = 1;
+        ByteString = uint8(zeros(1,nTotalBytes));
+        for i = 1:nArrays
+            dataType = dataTypes{i};
+            data = data2Send{i};
+            switch dataType % Check range and cast to uint8
+                case 'char'
+                    if sum((data < 0)+(data > 128)) > 0
+                        error('Error: a char was out of range: 0 to 128 (limited by Arduino)')
+                    end
+                    ByteString(ByteStringPos:ByteStringPos+DataLength(i)-1) = char(data); 
+                    ByteStringPos = ByteStringPos + DataLength(i);
+                case 'uint8'
+                    if sum((data < 0)+(data > 255)) > 0
+                        error('Error: an unsigned 8-bit integer was out of range: 0 to 255')
+                    end
+                    ByteString(ByteStringPos:ByteStringPos+DataLength(i)-1) = uint8(data);
+                    ByteStringPos = ByteStringPos + DataLength(i);
+                case 'uint16'
+                    if sum((data < 0)+(data > 65535)) > 0
+                        error('Error: an unsigned 16-bit integer was out of range: 0 to 65,535')
+                    end
+                    ByteString(ByteStringPos:ByteStringPos+DataLength(i)-1) = typecast(uint16(data), 'uint8');
+                    ByteStringPos = ByteStringPos + DataLength(i);
+                case 'uint32'
+                    if sum((data < 0)+(data > 4294967295)) > 0
+                        error('Error: an unsigned 32-bit integer was out of range: 0 to 4,294,967,295')
+                    end
+                    ByteString(ByteStringPos:ByteStringPos+DataLength(i)-1) = typecast(uint32(data), 'uint8');
+                    ByteStringPos = ByteStringPos + DataLength(i);
+                case 'int8'
+                    if sum((data < -128)+(data > 127)) > 0
+                        error('Error: a signed 8-bit integer was out of range: -128 to 127')
+                    end
+                    ByteString(ByteStringPos:ByteStringPos+DataLength(i)-1) = typecast(int8(data), 'uint8');
+                    ByteStringPos = ByteStringPos + DataLength(i);
+                case 'int16'
+                    if sum((data < -32768)+(data > 32767)) > 0
+                        error('Error: a signed 16-bit integer was out of range: -32,768 to 32,767')
+                    end
+                    ByteString(ByteStringPos:ByteStringPos+DataLength(i)-1) = typecast(int16(data), 'uint8');
+                    ByteStringPos = ByteStringPos + DataLength(i);
+                case 'int32'
+                    if sum((data < -2147483648)+(data > 2147483647)) > 0
+                        error('Error: a signed 32-bit integer was out of range: -2,147,483,648 to 2,147,483,647')
+                    end
+                    ByteString(ByteStringPos:ByteStringPos+DataLength(i)-1) = typecast(int32(data), 'uint8');
+                    ByteStringPos = ByteStringPos + DataLength(i);
+                otherwise
+                    error(['The datatype ' dataType ' is not currently supported by ArCOM.']);
+            end
         end
         switch arCOMObject.Interface
             case 0
-                fwrite(port, data, dataType);
+                fwrite(port, ByteString, 'uint8');
             case 1
-                switch dataType
-                    case 'char'
-                        IOPort('Write', arCOMObject.Port, char(data), 1);
-                    case 'uint8'
-                        IOPort('Write', arCOMObject.Port, uint8(data), 1);
-                    case 'uint16'
-                        IOPort('Write', arCOMObject.Port, typecast(uint16(data), 'uint8'), 1);
-                    case 'uint32'
-                        IOPort('Write', arCOMObject.Port, typecast(uint32(data), 'uint8'), 1);
-                    case 'int8'
-                        IOPort('Write', arCOMObject.Port, typecast(int8(data), 'uint8'), 1);
-                    case 'int16'
-                        IOPort('Write', arCOMObject.Port, typecast(int16(data), 'uint8'), 1);
-                    case 'int32'
-                        IOPort('Write', arCOMObject.Port, typecast(int32(data), 'uint8'), 1);
-                end
+                IOPort('Write', arCOMObject.Port, ByteString, 1);
             case 2
-                switch Datatype
-                    case 'char'
-                        srl_write(arCOMObject.Port, char(data));
-                    case 'uint8'
-                        srl_write(arCOMObject.Port, char(data));
-                    case 'uint16'
-                        srl_write(arCOMObject.Port, char(typecast(uint16(data), 'uint8')));
-                    case 'uint32'
-                        srl_write(arCOMObject.Port, char(typecast(uint32(data), 'uint8')));
-                    case 'int8'
-                        srl_write(arCOMObject.Port, char(typecast(int8(data), 'uint8')));
-                    case 'int16'
-                        srl_write(arCOMObject.Port, char(typecast(int16(data), 'uint8')));
-                    case 'int32'
-                        srl_write(arCOMObject.Port, char(typecast(int32(data), 'uint8')));
-                end
+                srl_write(arCOMObject.Port, char(ByteString));
         end
         
     case 'read'
         arCOMObject = varargin{1};
-        nValues = varargin{2};
-        if nargin > 3
-            dataType = varargin{3};
-            if ~strcmp(dataType, arCOMObject.validDataTypes)
-                error(['The datatype ' dataType ' is not currently supported by ArCOM.']);
-            end
+        if nargin == 3
+            nArrays = 1;
+            nValues = varargin(2);
+            dataTypes = {'uint8'}; 
         else
-            dataType = 'uint8';
+            nArrays = (nargin-2)/2;
+            nValues = varargin(2:2:end);
+            dataTypes = varargin(3:2:end);
+        end
+        nValues = cell2mat(nValues);
+        nTotalBytes = 0;
+        for i = 1:nArrays
+            switch dataTypes{i}
+                case 'char' 
+                    nTotalBytes = nTotalBytes + nValues(i);
+                case 'uint8'
+                    nTotalBytes = nTotalBytes + nValues(i);
+                case 'uint16'
+                    nTotalBytes = nTotalBytes + nValues(i)*2;
+                case 'uint32'
+                    nTotalBytes = nTotalBytes + nValues(i)*4;
+                case 'int8'
+                    nTotalBytes = nTotalBytes + nValues(i);
+                case 'int16'
+                    nTotalBytes = nTotalBytes + nValues(i)*2;
+                case 'int32'
+                    nTotalBytes = nTotalBytes + nValues(i)*4;
+            end
         end
         switch arCOMObject.Interface
             case 0
-                varargout{1} = fread(port, nValues, dataType);
+                ByteString = fread(port, nTotalBytes, 'uint8');
             case 1
-                nValues = double(nValues);
-                switch dataType
-                    case 'char'
-                        varargout{1} = char(IOPort('Read', arCOMObject.Port, 1, nValues));
-                    case 'uint8'
-                        varargout{1} = uint8(IOPort('Read', arCOMObject.Port, 1, nValues));
-                    case 'uint16'
-                        Data = IOPort('Read', arCOMObject.Port, 1, nValues*2);
-                        varargout{1} = typecast(uint8(Data), 'uint16');
-                    case 'uint32'
-                        Data = IOPort('Read', arCOMObject.Port, 1, nValues*4);
-                        varargout{1} = typecast(uint8(Data), 'uint32');
-                    case 'int8'
-                        varargout{1} = typecast(uint8(IOPort('Read', arCOMObject.Port, 1, nValues)), 'int8');
-                    case 'int16'
-                        Data = IOPort('Read', arCOMObject.Port, 1, nValues*2);
-                        varargout{1} = typecast(uint8(Data), 'int16');
-                    case 'int32'
-                        Data = IOPort('Read', arCOMObject.Port, 1, nValues*4);
-                        varargout{1} = typecast(uint8(Data), 'int32');
-                end
+                ByteString = IOPort('Read', arCOMObject.Port, 1, nTotalBytes);
             case 2
-                nValues = double(nValues);
-                switch Datatype
-                    case 'char'
-                        Data = srl_read(arCOMObject.Port, nValues);
-                        varargout{1} = char(typecast(Data, 'int8'));
-                    case 'uint8'
-                        varargout{1} = srl_read(arCOMObject.Port, nValues);
-                    case 'uint16'
-                        Data = srl_read(arCOMObject.Port, nValues*2);
-                        varargout{1} = typecast(Data, 'uint16');
-                    case 'uint32'
-                        Data = srl_read(arCOMObject.Port, nValues*4);
-                        varargout{1} = typecast(Data, 'uint32');
-                    case 'int8'
-                        Data = srl_read(arCOMObject.Port, nValues);
-                        varargout{1} = typecast(Data, 'int8');
-                    case 'int16'
-                        Data = srl_read(arCOMObject.Port, nValues*2);
-                        varargout{1} = typecast(Data, 'int16');
-                    case 'int32'
-                        Data = srl_read(arCOMObject.Port, nValues*4);
-                        varargout{1} = typecast(Data, 'int32');
-                end
+                ByteString = srl_read(arCOMObject.Port, nTotalBytes);
+        end
+        Pos = 1;
+        varargout = cell(1,nArrays);
+        for i = 1:nArrays
+            switch dataTypes{i}
+                case 'char' 
+                    varargout{i} = char(ByteString(Pos:Pos+nValues(i)-1)); Pos = Pos + nValues(i);
+                case 'uint8'
+                    varargout{i} = uint8(ByteString(Pos:Pos+nValues(i)-1)); Pos = Pos + nValues(i);
+                case 'uint16'
+                    varargout{i} = typecast(uint8(ByteString(Pos:Pos+(nValues(i)*2)-1)), 'uint16'); Pos = Pos + nValues(i)*2;
+                case 'uint32'
+                    varargout{i} = typecast(uint8(ByteString(Pos:Pos+(nValues(i)*4)-1)), 'uint32'); Pos = Pos + nValues(i)*4;
+                case 'int8'
+                    varargout{i} = typecast(uint8(ByteString(Pos:Pos+(nValues(i))-1)), 'int8'); Pos = Pos + nValues(i);
+                case 'int16'
+                    varargout{i} = typecast(uint8(ByteString(Pos:Pos+(nValues(i)*2)-1)), 'int16'); Pos = Pos + nValues(i)*2;
+                case 'int32'
+                    varargout{i} = typecast(uint8(ByteString(Pos:Pos+(nValues(i)*4)-1)), 'int32'); Pos = Pos + nValues(i)*4;
+            end
         end
     case 'close'
         arCOMObject = varargin{1};
