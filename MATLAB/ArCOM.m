@@ -108,6 +108,10 @@ switch lower(op)
                 end
                 IOPort('Verbosity', 0);
                 arCOMObject.Port = IOPort('OpenSerialPort', portString, 'BaudRate=115200, OutputBufferSize=100000, DTR=1');
+                if (arCOMObject.Port < 0)
+                    IOPort('Close', arCOMObject.Port);
+                    error(['Error: Unable to connect to port ' portString '. The port may be in use by another application.'])
+                end
                 pause(.1); % Helps on some platforms
                 varargout{1} = arCOMObject;
             case 2
@@ -142,11 +146,12 @@ switch lower(op)
             data2Send = varargin(2:2:end);
             dataTypes = varargin(3:2:end);
         end
+        
         nTotalBytes = 0;
         DataLength = cellfun('length',data2Send);
         for i = 1:nArrays
             switch dataTypes{i}
-                case 'char' 
+                case 'char'
                     nTotalBytes = nTotalBytes + DataLength(i);
                 case 'uint8'
                     nTotalBytes = nTotalBytes + DataLength(i);
@@ -176,7 +181,7 @@ switch lower(op)
                     if sum((data < 0)+(data > 128)) > 0
                         error('Error: a char was out of range: 0 to 128 (limited by Arduino)')
                     end
-                    ByteString(ByteStringPos:ByteStringPos+DataLength(i)-1) = char(data); 
+                    ByteString(ByteStringPos:ByteStringPos+DataLength(i)-1) = char(data);
                     ByteStringPos = ByteStringPos + DataLength(i);
                 case 'uint8'
                     if sum((data < 0)+(data > 255)) > 0
@@ -232,17 +237,17 @@ switch lower(op)
         if nargin == 3
             nArrays = 1;
             nValues = varargin(2);
-            dataTypes = {'uint8'}; 
+            dataTypes = {'uint8'};
         else
             nArrays = (nargin-2)/2;
             nValues = varargin(2:2:end);
             dataTypes = varargin(3:2:end);
         end
-        nValues = cell2mat(nValues);
+        nValues = double(cell2mat(nValues));
         nTotalBytes = 0;
         for i = 1:nArrays
             switch dataTypes{i}
-                case 'char' 
+                case 'char'
                     nTotalBytes = nTotalBytes + nValues(i);
                 case 'uint8'
                     nTotalBytes = nTotalBytes + nValues(i);
@@ -266,11 +271,14 @@ switch lower(op)
             case 2
                 ByteString = srl_read(arCOMObject.Port, nTotalBytes);
         end
+        if isempty(ByteString)
+            error('Error: The serial port returned 0 bytes.')
+        end
         Pos = 1;
         varargout = cell(1,nArrays);
         for i = 1:nArrays
             switch dataTypes{i}
-                case 'char' 
+                case 'char'
                     varargout{i} = char(ByteString(Pos:Pos+nValues(i)-1)); Pos = Pos + nValues(i);
                 case 'uint8'
                     varargout{i} = uint8(ByteString(Pos:Pos+nValues(i)-1)); Pos = Pos + nValues(i);
