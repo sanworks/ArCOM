@@ -19,13 +19,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-// This example code receives 100 16-bit signed integers and 100 32-bit unsigned integers, modifies them, and returns them to MATLAB.
-// On the MATLAB side, use: 
-// Port = ArCOM('open', 'COM13', 115200)
-// ArCOM('write', Port, int16(sin(.1*(1:100))*10000), 'int16', 100001:100100, 'uint32'); % Write 16-bit sine wave, then 32-bit timestamps
-// [wave, times] = ArCOM('read', Port, 100, 'int16', 100, 'uint32'); % Read 100 signed 16-bit samples, then 200 unsigned 32-bit times
-// ArCOM('close', Port);
-
+/* This example code receives 100 16-bit signed integers and 100 32-bit unsigned integers, modifies them, and returns them to MATLAB.
+   In MATLAB, use: 
+   Port = ArCOMObject('COM13', 115200);
+   Port.write(sin(.1*(1:100))*10000), 'int16', 100001:100100, 'uint32'); % Write 16-bit sine wave, then 32-bit timestamps
+   [wave, times] = Port.read(100, 'int16', 100, 'uint32'); % Read 100 signed 16-bit samples, then 200 unsigned 32-bit times
+   clear Port; % clear the Object (releases the port)
+   
+   Or in Python, use:
+   from ArCOM import ArCOMObject
+   Port = ArCOMObject('COM13', 115200)
+   Port.write([5]*100, 'uint16', [500]*100, 'uint32') % Write 16-bit sine wave, then 32-bit timestamps
+   wave, times = Port.read(100, 'uint16', 100, 'uint32') % Read 100 signed 16-bit samples, then 200 unsigned 32-bit times
+*/
 #include "ArCOM.h"
 ArCOM myUSB(SerialUSB); // Sets ArCOM to wrap SerialUSB (could also be Serial, Serial1, etc.)
 short waveform[100] = {0};
