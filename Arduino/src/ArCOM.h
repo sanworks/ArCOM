@@ -10,8 +10,8 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, version 3.
 
-This program is distributed  WITHOUT ANY WARRANTY and without even the 
-implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+This program is distributed  WITHOUT ANY WARRANTY and without even the
+implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
@@ -33,6 +33,7 @@ public:
   ArCOM(Stream &s);
   // Serial functions
   unsigned int available();
+  void flush();
   // Unsigned integers
 	void writeByte(byte byte2Write);
   void writeUint8(byte byte2Write);
@@ -54,7 +55,7 @@ public:
   void readUint16Array(unsigned short numArray[], unsigned int size);
   uint32_t readUint32();
   void readUint32Array(unsigned long numArray[], unsigned int size);
-  
+
   // Signed integers
   void writeInt8(int8_t int2Write);
   void writeInt8Array(int8_t numArray[], unsigned int size);
@@ -68,7 +69,7 @@ public:
   void readInt16Array(int16_t numArray[], unsigned int size);
   int32_t readInt32();
   void readInt32Array(int32_t numArray[], unsigned int size);
-  
+
 private:
   Stream *ArCOMstream; // Stores the interface (Serial, Serial1, SerialUSB, etc.)
   union {
