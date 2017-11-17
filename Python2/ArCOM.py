@@ -31,6 +31,8 @@ class ArCOMObject(object):
         self.serialObject = serial.Serial(serialPortName, baudRate, timeout=1)
     def close(self):
         self.serialObject.close()
+    def bytesAvailable(self):
+        return self.serialObject.inWaiting()
     def write(self,*arg):
         nTypes = len(arg)/2;
         argPos = 0;
@@ -57,7 +59,24 @@ class ArCOMObject(object):
             else:
                 messageBytes += struct.pack(dataTypeSymbol,data)
         self.serialObject.write(messageBytes)
-    def read(self,*arg):
+    def read(self, datatype): # Read one value
+        if ((datatype in self.typeNames) is False):
+            raise ArCOMError('Error: ' + datatype + ' is not a data type supported by ArCOM.')
+        typeIndex = self.typeNames.index(datatype)
+        dataTypeSymbol = self.typeSymbols[typeIndex]
+        byteWidth = self.typeBytes[typeIndex]
+        messageBytes = self.serialObject.read(byteWidth)
+        nBytesRead = len(messageBytes)
+        if nBytesRead < byteWidth:
+            raise ArCOMError('Error: serial port timed out. ' + str(nBytesRead) + ' bytes read. Expected ' + str(nBytes2Read) +' byte(s).')
+        dataFormat = '<' + dataTypeSymbol
+        if datatype == 'char':
+            thisOutput = str(messageBytes)
+        else:
+            thisOutput = struct.unpack(dataFormat,messageBytes)
+            thisOutput = int(thisOutput[0])
+        return thisOutput
+    def readArray(self,*arg): # Read an array of values
         nTypes = len(arg)/2;
         argPos = 0;
         outputs = [];
@@ -79,11 +98,8 @@ class ArCOMObject(object):
             dataFormat = '<' + dataTypeSymbol*nValues
             if datatype == 'char':
                 thisOutput = str(messageBytes)
-            elif nValues > 1:
-                thisOutput = list(struct.unpack(dataFormat,messageBytes))
             else:
-                thisOutput = struct.unpack(dataFormat,messageBytes)
-                thisOutput = int(thisOutput[0])
+                thisOutput = list(struct.unpack(dataFormat,messageBytes))
             outputs.append(thisOutput)
         if nTypes == 1:
             outputs = thisOutput

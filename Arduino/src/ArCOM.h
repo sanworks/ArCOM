@@ -2,7 +2,7 @@
 ----------------------------------------------------------------------------
 
 This file is part of the Sanworks ArCOM repository
-Copyright (C) 2016 Sanworks LLC, Sound Beach, New York, USA
+Copyright (C) 2017 Sanworks LLC, Stony Brook, New York, USA
 
 ----------------------------------------------------------------------------
 
@@ -42,9 +42,9 @@ public:
   void writeUint8Array(byte numArray[], unsigned int size);
   void writeCharArray(char charArray[], unsigned int size);
   void writeUint16(uint16_t int2Write);
-  void writeUint16Array(unsigned short numArray[], unsigned int size);
+  void writeUint16Array(uint16_t numArray[], unsigned int size);
   void writeUint32(uint32_t int2Write);
-  void writeUint32Array(unsigned long numArray[], unsigned int size);
+  void writeUint32Array(uint32_t numArray[], unsigned int size);
   byte readByte();
   byte readUint8();
   char readChar();
@@ -52,9 +52,9 @@ public:
   void readUint8Array(byte numArray[], unsigned int size);
   void readCharArray(char charArray[], unsigned int size);
   uint16_t readUint16();
-  void readUint16Array(unsigned short numArray[], unsigned int size);
+  void readUint16Array(uint16_t numArray[], unsigned int size);
   uint32_t readUint32();
-  void readUint32Array(unsigned long numArray[], unsigned int size);
+  void readUint32Array(uint32_t numArray[], unsigned int size);
 
   // Signed integers
   void writeInt8(int8_t int2Write);
