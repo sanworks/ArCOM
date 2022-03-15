@@ -132,7 +132,7 @@ void ArCOM::writeCharArray(char charArray[], unsigned int nValues) {
   ArCOMstream->write(charArray, nValues);
 }
 void ArCOM::writeInt8Array(int8_t numArray[], unsigned int nValues) {
-  for (int i = 0; i < nValues; i++) {
+  for (unsigned int i = 0; i < nValues; i++) {
     typeBuffer.int8 = numArray[i];
     ArCOMstream->write(typeBuffer.byteArray[0]);
   }
@@ -144,7 +144,7 @@ void ArCOM::writeUint16Array(uint16_t numArray[], unsigned int nValues) {
   }
 }
 void ArCOM::writeInt16Array(int16_t numArray[], unsigned int nValues) {
-  for (int i = 0; i < nValues; i++) {
+  for (unsigned int i = 0; i < nValues; i++) {
     typeBuffer.int16 = numArray[i];
     ArCOMstream->write(typeBuffer.byteArray, 2);
   }
