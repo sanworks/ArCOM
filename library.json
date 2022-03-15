@@ -8,8 +8,9 @@
       "type": "git",
       "url": "https://github.com/sanworks/ArCOM.git"
     },
-    "srcDir": "Arduino/src",
-    "includeDir": "Arduino/src",
+    "build": {
+        "srcDir": "Arduino/src"
+    },
     "authors":
     [
       {
