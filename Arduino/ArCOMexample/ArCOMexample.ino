@@ -34,8 +34,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "ArCOM.h"
 ArCOM myUSB(SerialUSB); // Sets ArCOM to wrap SerialUSB (could also be Serial, Serial1, etc.)
-short waveform[100] = {0};
-unsigned long timestamps[100] = {0};
+int16_t waveform[100] = {0};
+uint32_t timestamps[100] = {0};
 
 void setup() {
   SerialUSB.begin(115200);

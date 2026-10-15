@@ -8,7 +8,8 @@
       "type": "git",
       "url": "https://github.com/sanworks/ArCOM.git"
     },
-    "build": {
+    "build":
+    {
         "srcDir": "Arduino/src"
     },
     "authors":
@@ -16,6 +17,19 @@
       {
         "name": "Josh Sanders",
         "url": "https://www.sanworks.io"
+      },
+      {
+        "name": "Florian Rau",
+        "url": "https://github.com/bimac"
+      }
+    ],
+    "examples": [
+      {
+          "name": "ArCOMexample",
+          "base": "Arduino/ArCOMexample",
+          "files": [
+              "ArCOMexample.ino"
+          ]
       }
     ],
     "license": "GPLv3",
